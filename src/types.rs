@@ -24,6 +24,35 @@ pub enum HelmExpr {
     ChartField(String),
     /// `"{{ .Values.a }}:{{ .Values.b }}"` — interpolated string
     Interpolated(Vec<HelmExprPart>),
+
+    // ── Control flow (Helm Go templates) ─────────────────
+
+    /// `{{- if .Values.x }}...{{- else }}...{{- end }}`
+    If {
+        condition: Box<HelmExpr>,
+        body: String,
+        else_body: Option<String>,
+    },
+    /// `{{- range .Values.items }}...{{- end }}`
+    Range {
+        collection: Box<HelmExpr>,
+        body: String,
+    },
+    /// `{{- with .Values.x }}...{{- end }}`
+    With {
+        context: Box<HelmExpr>,
+        body: String,
+    },
+    /// `{{- define "name" }}...{{- end }}`
+    Define {
+        name: String,
+        body: String,
+    },
+    /// `{{ .Values.x | default "val" }}` or `{{ .Values.x | quote }}`
+    Pipe {
+        expr: Box<HelmExpr>,
+        functions: Vec<String>,
+    },
 }
 
 /// Parts of an interpolated Helm expression.
@@ -58,6 +87,29 @@ impl HelmExpr {
                 }
                 out.push('"');
                 out
+            }
+            Self::If { condition, body, else_body } => {
+                let cond = condition.emit();
+                match else_body {
+                    Some(eb) => format!("{{{{- if {cond} }}}}\n{body}\n{{{{- else }}}}\n{eb}\n{{{{- end }}}}"),
+                    None => format!("{{{{- if {cond} }}}}\n{body}\n{{{{- end }}}}"),
+                }
+            }
+            Self::Range { collection, body } => {
+                format!("{{{{- range {} }}}}\n{body}\n{{{{- end }}}}", collection.emit())
+            }
+            Self::With { context, body } => {
+                format!("{{{{- with {} }}}}\n{body}\n{{{{- end }}}}", context.emit())
+            }
+            Self::Define { name, body } => {
+                format!("{{{{- define \"{}\" }}}}\n{body}\n{{{{- end }}}}", name)
+            }
+            Self::Pipe { expr, functions } => {
+                let base = expr.emit();
+                // Strip outer {{ }} from base to chain pipes
+                let inner = base.trim_start_matches("{{ ").trim_end_matches(" }}");
+                let pipe_chain = functions.join(" | ");
+                format!("{{{{ {inner} | {pipe_chain} }}}}")
             }
         }
     }
