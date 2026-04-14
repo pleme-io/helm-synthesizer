@@ -1,33 +1,40 @@
 # helm-synthesizer
 
-Typed Helm chart generation from proven infrastructure types. Built on yaml-synthesizer.
+Typed Helm chart generation from proven infrastructure types. Built on yaml-synthesizer. **Zero Raw nodes** — every Helm Go template expression is a typed `HelmExpr` variant.
 
-## Tests: 44 | Status: Proven
+## Tests: 59 | Status: Proven, tree-sitter Validated, Zero Raw
+
+## HelmExpr — Typed Go Template Expressions
+
+| Variant | Output |
+|---------|--------|
+| `Value(["service", "port"])` | `{{ .Values.service.port }}` |
+| `Include("chart.fullname")` | `{{ include "chart.fullname" . }}` |
+| `IncludeNindent("chart.labels", 4)` | `{{- include "chart.labels" . | nindent 4 }}` |
+| `ChartField("Name")` | `{{ .Chart.Name }}` |
+| `Interpolated([...])` | `"{{ .Values.image.repository }}:{{ .Values.image.tag }}"` |
+
+No `YamlNode::Raw` anywhere. Every expression is typed and validatable.
 
 ## Core Types
 
 | Type | Purpose |
 |------|---------|
 | `ChartMeta` | Chart.yaml: apiVersion, name, version, type, dependencies |
-| `DeploymentConfig` | Root type: image, replicas, port, resources, security, service, hpa, pdb, network policy, labels, env, service monitor |
-| `Resources` | CPU/memory requests and limits |
+| `DeploymentConfig` | Root: image, replicas, port, resources, security, service, hpa, pdb, network policy |
 | `SecurityContext` | `hardened()` (default) or `permissive()` |
-| `ServiceConfig` | ClusterIP / NodePort / LoadBalancer |
-| `HpaConfig` | min/max replicas, target CPU |
-| `PdbConfig` | minAvailable / maxUnavailable |
-| `NetworkPolicyConfig` | ingress/egress ports |
 
 ## Rendering
 
-- `render_chart_yaml(&ChartMeta)` → Chart.yaml as YamlNode
-- `render_values_yaml(&DeploymentConfig)` → values.yaml as YamlNode
-- `render_deployment_template()` → templates/deployment.yaml with Helm Go template syntax
-- `render_service_template()` → templates/service.yaml
+- `render_chart_yaml(&ChartMeta)` → Chart.yaml
+- `render_values_yaml(&DeploymentConfig)` → values.yaml
+- `render_deployment_template()` → templates/deployment.yaml (HelmExpr, not Raw)
+- `render_service_template()` → templates/service.yaml (HelmExpr, not Raw)
 
-## Security Default
+## tree-sitter Validation
 
-All charts default to `SecurityContext::hardened()`: runAsNonRoot=true, readOnlyRootFilesystem=true, drop ALL capabilities.
+8 tests validate Chart.yaml and values.yaml via `tree-sitter-yaml`.
 
 ## Dependencies
 
-yaml-synthesizer (path dep). proptest (dev).
+yaml-synthesizer (path). proptest, tree-sitter, tree-sitter-yaml (dev).
