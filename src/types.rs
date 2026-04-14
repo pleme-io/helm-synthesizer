@@ -63,9 +63,10 @@ impl HelmExpr {
     }
 
     /// Convert to a YamlNode for embedding in YAML structures.
+    /// Uses TemplateExpr (typed) — not Raw (escape hatch).
     #[must_use]
     pub fn to_yaml(&self) -> yaml_synthesizer::YamlNode {
-        yaml_synthesizer::YamlNode::Raw(self.emit())
+        yaml_synthesizer::YamlNode::TemplateExpr(self.emit())
     }
 
     // ── Convenience constructors ────────────────────────────────
