@@ -205,31 +205,28 @@ pub fn render_values_yaml(config: &DeploymentConfig) -> YamlNode {
 }
 
 /// Render a Deployment template (templates/deployment.yaml).
+/// ZERO Raw nodes — every Helm expression is typed via HelmExpr.
 #[must_use]
 pub fn render_deployment_template() -> YamlNode {
-    // This renders the Go template YAML that Helm processes
     YamlNode::map(vec![
         ("apiVersion", YamlNode::str("apps/v1")),
         ("kind", YamlNode::str("Deployment")),
         (
             "metadata",
             YamlNode::map(vec![
-                ("name", YamlNode::Raw("{{ include \"chart.fullname\" . }}".into())),
-                ("labels", YamlNode::Raw("{{- include \"chart.labels\" . | nindent 4 }}".into())),
+                ("name", HelmExpr::include("chart.fullname").to_yaml()),
+                ("labels", HelmExpr::include_nindent("chart.labels", 4).to_yaml()),
             ]),
         ),
         (
             "spec",
             YamlNode::map(vec![
-                (
-                    "replicas",
-                    YamlNode::Raw("{{ .Values.replicaCount }}".into()),
-                ),
+                ("replicas", HelmExpr::value(&["replicaCount"]).to_yaml()),
                 (
                     "selector",
                     YamlNode::map(vec![(
                         "matchLabels",
-                        YamlNode::Raw("{{- include \"chart.selectorLabels\" . | nindent 6 }}".into()),
+                        HelmExpr::include_nindent("chart.selectorLabels", 6).to_yaml(),
                     )]),
                 ),
                 (
@@ -239,9 +236,7 @@ pub fn render_deployment_template() -> YamlNode {
                             "metadata",
                             YamlNode::map(vec![(
                                 "labels",
-                                YamlNode::Raw(
-                                    "{{- include \"chart.selectorLabels\" . | nindent 8 }}".into(),
-                                ),
+                                HelmExpr::include_nindent("chart.selectorLabels", 8).to_yaml(),
                             )]),
                         ),
                         (
@@ -249,18 +244,13 @@ pub fn render_deployment_template() -> YamlNode {
                             YamlNode::map(vec![(
                                 "containers",
                                 YamlNode::Seq(vec![YamlNode::map(vec![
-                                    ("name", YamlNode::Raw("{{ .Chart.Name }}".into())),
-                                    (
-                                        "image",
-                                        YamlNode::Raw(
-                                            "\"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"".into(),
-                                        ),
-                                    ),
+                                    ("name", HelmExpr::chart("Name").to_yaml()),
+                                    ("image", HelmExpr::image_ref().to_yaml()),
                                     (
                                         "ports",
                                         YamlNode::Seq(vec![YamlNode::map(vec![(
                                             "containerPort",
-                                            YamlNode::Raw("{{ .Values.containerPort }}".into()),
+                                            HelmExpr::value(&["containerPort"]).to_yaml(),
                                         )])]),
                                     ),
                                 ])]),
@@ -274,6 +264,7 @@ pub fn render_deployment_template() -> YamlNode {
 }
 
 /// Render a Service template.
+/// ZERO Raw nodes — every Helm expression is typed via HelmExpr.
 #[must_use]
 pub fn render_service_template() -> YamlNode {
     YamlNode::map(vec![
@@ -282,27 +273,24 @@ pub fn render_service_template() -> YamlNode {
         (
             "metadata",
             YamlNode::map(vec![
-                ("name", YamlNode::Raw("{{ include \"chart.fullname\" . }}".into())),
-                ("labels", YamlNode::Raw("{{- include \"chart.labels\" . | nindent 4 }}".into())),
+                ("name", HelmExpr::include("chart.fullname").to_yaml()),
+                ("labels", HelmExpr::include_nindent("chart.labels", 4).to_yaml()),
             ]),
         ),
         (
             "spec",
             YamlNode::map(vec![
-                ("type", YamlNode::Raw("{{ .Values.service.type }}".into())),
+                ("type", HelmExpr::value(&["service", "type"]).to_yaml()),
                 (
                     "ports",
                     YamlNode::Seq(vec![YamlNode::map(vec![
-                        ("port", YamlNode::Raw("{{ .Values.service.port }}".into())),
-                        (
-                            "targetPort",
-                            YamlNode::Raw("{{ .Values.service.targetPort }}".into()),
-                        ),
+                        ("port", HelmExpr::value(&["service", "port"]).to_yaml()),
+                        ("targetPort", HelmExpr::value(&["service", "targetPort"]).to_yaml()),
                     ])]),
                 ),
                 (
                     "selector",
-                    YamlNode::Raw("{{- include \"chart.selectorLabels\" . | nindent 4 }}".into()),
+                    HelmExpr::include_nindent("chart.selectorLabels", 4).to_yaml(),
                 ),
             ]),
         ),

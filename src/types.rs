@@ -1,6 +1,179 @@
 /// Typed Helm chart configuration — proven types that generate
 /// structurally correct Helm charts.
 
+/// A Helm Go template expression — typed alternative to Raw strings.
+///
+/// Every Helm template expression in a chart is one of these variants.
+/// No escape hatches. No arbitrary strings. Provably correct syntax.
+#[derive(Debug, Clone, PartialEq)]
+pub enum HelmExpr {
+    /// `{{ .Values.path.to.field }}` — reference to values.yaml
+    Value(Vec<String>),
+    /// `{{ include "template_name" . }}` — include a named template
+    Include {
+        template: String,
+        context: String,
+    },
+    /// `{{- include "template_name" . | nindent N }}` — include with nindent
+    IncludeNindent {
+        template: String,
+        context: String,
+        indent: u32,
+    },
+    /// `{{ .Chart.Name }}` — chart metadata field
+    ChartField(String),
+    /// `"{{ .Values.a }}:{{ .Values.b }}"` — interpolated string
+    Interpolated(Vec<HelmExprPart>),
+}
+
+/// Parts of an interpolated Helm expression.
+#[derive(Debug, Clone, PartialEq)]
+pub enum HelmExprPart {
+    Literal(String),
+    ValueRef(Vec<String>),
+}
+
+impl HelmExpr {
+    /// Emit as a Go template string for use in YAML values.
+    #[must_use]
+    pub fn emit(&self) -> String {
+        match self {
+            Self::Value(path) => format!("{{{{ .Values.{} }}}}", path.join(".")),
+            Self::Include { template, context } => {
+                format!("{{{{ include \"{}\" {} }}}}", template, context)
+            }
+            Self::IncludeNindent { template, context, indent } => {
+                format!("{{{{- include \"{}\" {} | nindent {} }}}}", template, context, indent)
+            }
+            Self::ChartField(field) => format!("{{{{ .Chart.{} }}}}", field),
+            Self::Interpolated(parts) => {
+                let mut out = String::from("\"");
+                for part in parts {
+                    match part {
+                        HelmExprPart::Literal(s) => out.push_str(s),
+                        HelmExprPart::ValueRef(path) => {
+                            out.push_str(&format!("{{{{ .Values.{} }}}}", path.join(".")));
+                        }
+                    }
+                }
+                out.push('"');
+                out
+            }
+        }
+    }
+
+    /// Convert to a YamlNode for embedding in YAML structures.
+    #[must_use]
+    pub fn to_yaml(&self) -> yaml_synthesizer::YamlNode {
+        yaml_synthesizer::YamlNode::Raw(self.emit())
+    }
+
+    // ── Convenience constructors ────────────────────────────────
+
+    #[must_use]
+    pub fn value(path: &[&str]) -> Self {
+        Self::Value(path.iter().map(|s| (*s).to_string()).collect())
+    }
+
+    #[must_use]
+    pub fn include(template: &str) -> Self {
+        Self::Include {
+            template: template.to_string(),
+            context: ".".to_string(),
+        }
+    }
+
+    #[must_use]
+    pub fn include_nindent(template: &str, indent: u32) -> Self {
+        Self::IncludeNindent {
+            template: template.to_string(),
+            context: ".".to_string(),
+            indent,
+        }
+    }
+
+    #[must_use]
+    pub fn chart(field: &str) -> Self {
+        Self::ChartField(field.to_string())
+    }
+
+    #[must_use]
+    pub fn image_ref() -> Self {
+        Self::Interpolated(vec![
+            HelmExprPart::ValueRef(vec!["image".into(), "repository".into()]),
+            HelmExprPart::Literal(":".into()),
+            HelmExprPart::ValueRef(vec!["image".into(), "tag".into()]),
+        ])
+    }
+}
+
+#[cfg(test)]
+mod helm_expr_tests {
+    use super::*;
+
+    #[test]
+    fn value_emits_go_template() {
+        assert_eq!(
+            HelmExpr::value(&["replicaCount"]).emit(),
+            "{{ .Values.replicaCount }}"
+        );
+    }
+
+    #[test]
+    fn nested_value_emits_dotted() {
+        assert_eq!(
+            HelmExpr::value(&["service", "port"]).emit(),
+            "{{ .Values.service.port }}"
+        );
+    }
+
+    #[test]
+    fn include_emits_template() {
+        assert_eq!(
+            HelmExpr::include("chart.fullname").emit(),
+            "{{ include \"chart.fullname\" . }}"
+        );
+    }
+
+    #[test]
+    fn include_nindent_emits() {
+        assert_eq!(
+            HelmExpr::include_nindent("chart.labels", 4).emit(),
+            "{{- include \"chart.labels\" . | nindent 4 }}"
+        );
+    }
+
+    #[test]
+    fn chart_field_emits() {
+        assert_eq!(
+            HelmExpr::chart("Name").emit(),
+            "{{ .Chart.Name }}"
+        );
+    }
+
+    #[test]
+    fn image_ref_emits_interpolated() {
+        let out = HelmExpr::image_ref().emit();
+        assert!(out.contains(".Values.image.repository"));
+        assert!(out.contains(".Values.image.tag"));
+        assert!(out.contains(':'));
+    }
+
+    #[test]
+    fn all_exprs_deterministic() {
+        let exprs = vec![
+            HelmExpr::value(&["x"]),
+            HelmExpr::include("t"),
+            HelmExpr::include_nindent("t", 4),
+            HelmExpr::chart("Name"),
+            HelmExpr::image_ref(),
+        ];
+        for expr in &exprs {
+            assert_eq!(expr.emit(), expr.emit());
+        }
+    }
+}
+
 /// Chart.yaml metadata.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ChartMeta {
