@@ -9,6 +9,7 @@ repository = "https://github.com/pleme-io/helm-synthesizer"
 
 [dependencies]
 yaml-synthesizer = { path = "../yaml-synthesizer" }
+synthesizer-core = { git = "https://github.com/pleme-io/synthesizer-core" }
 
 [dev-dependencies]
 proptest = "1"
