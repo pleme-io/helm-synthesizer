@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "cargo_lock_sha256": "e853bc5ccc48396229d2eed0b9763ca40541798e8da9059cf3ad3d8625368e7f",
+  "cargo_lock_sha256": "8998ca84735cb2e59e81be5d46c289d0c4a9deab4a4b38ea9e4bd74fe19b5398",
   "target_resolves": {
     "base": {
       "aho-corasick-1.1.4": {
@@ -1817,8 +1817,8 @@
     }
   },
   "git_nar_sha256": {
-    "synthesizer-core-0.1.0": "sha256-NLcIDQuZcFIimEpDCWAtBLw7SfdjTXtG8gVTxdIKm/A=",
-    "yaml-synthesizer-0.1.0": "sha256-SvKglRC/HPZPiBMGExF62FG7nyOcbq2+rz2Czp5EJkY="
+    "synthesizer-core-0.1.0": "sha256-KbWxFV9Qy7ubcVMWZUCricQgJOXr18Wpy7YW6DGX51w=",
+    "yaml-synthesizer-0.1.0": "sha256-9AkxQDpYta81N6nyNSsx4kYoAqj0p7idCStQU1KG180="
   },
   "flake_metadata": {}
 }
