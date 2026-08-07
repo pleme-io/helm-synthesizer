@@ -694,7 +694,8 @@ dependencies = [
 
 [[package]]
 name = "yaml-synthesizer"
-version = "0.1.0"
+version = "0.1.2"
+source = "git+https://github.com/pleme-io/yaml-synthesizer#02af93b22304d6053f16b6b311152d5b31be6222"
 dependencies = [
  "synthesizer-core",
 ]
