@@ -10,10 +10,7 @@ pub enum HelmExpr {
     /// `{{ .Values.path.to.field }}` — reference to values.yaml
     Value(Vec<String>),
     /// `{{ include "template_name" . }}` — include a named template
-    Include {
-        template: String,
-        context: String,
-    },
+    Include { template: String, context: String },
     /// `{{- include "template_name" . | nindent N }}` — include with nindent
     IncludeNindent {
         template: String,
@@ -26,7 +23,6 @@ pub enum HelmExpr {
     Interpolated(Vec<HelmExprPart>),
 
     // ── Control flow (Helm Go templates) ─────────────────
-
     /// `{{- if .Values.x }}...{{- else }}...{{- end }}`
     If {
         condition: Box<HelmExpr>,
@@ -44,10 +40,7 @@ pub enum HelmExpr {
         body: String,
     },
     /// `{{- define "name" }}...{{- end }}`
-    Define {
-        name: String,
-        body: String,
-    },
+    Define { name: String, body: String },
     /// `{{ .Values.x | default "val" }}` or `{{ .Values.x | quote }}`
     Pipe {
         expr: Box<HelmExpr>,
@@ -71,8 +64,15 @@ impl HelmExpr {
             Self::Include { template, context } => {
                 format!("{{{{ include \"{}\" {} }}}}", template, context)
             }
-            Self::IncludeNindent { template, context, indent } => {
-                format!("{{{{- include \"{}\" {} | nindent {} }}}}", template, context, indent)
+            Self::IncludeNindent {
+                template,
+                context,
+                indent,
+            } => {
+                format!(
+                    "{{{{- include \"{}\" {} | nindent {} }}}}",
+                    template, context, indent
+                )
             }
             Self::ChartField(field) => format!("{{{{ .Chart.{} }}}}", field),
             Self::Interpolated(parts) => {
@@ -88,15 +88,24 @@ impl HelmExpr {
                 out.push('"');
                 out
             }
-            Self::If { condition, body, else_body } => {
+            Self::If {
+                condition,
+                body,
+                else_body,
+            } => {
                 let cond = condition.emit();
                 match else_body {
-                    Some(eb) => format!("{{{{- if {cond} }}}}\n{body}\n{{{{- else }}}}\n{eb}\n{{{{- end }}}}"),
+                    Some(eb) => format!(
+                        "{{{{- if {cond} }}}}\n{body}\n{{{{- else }}}}\n{eb}\n{{{{- end }}}}"
+                    ),
                     None => format!("{{{{- if {cond} }}}}\n{body}\n{{{{- end }}}}"),
                 }
             }
             Self::Range { collection, body } => {
-                format!("{{{{- range {} }}}}\n{body}\n{{{{- end }}}}", collection.emit())
+                format!(
+                    "{{{{- range {} }}}}\n{body}\n{{{{- end }}}}",
+                    collection.emit()
+                )
             }
             Self::With { context, body } => {
                 format!("{{{{- with {} }}}}\n{body}\n{{{{- end }}}}", context.emit())
@@ -198,10 +207,7 @@ mod helm_expr_tests {
 
     #[test]
     fn chart_field_emits() {
-        assert_eq!(
-            HelmExpr::chart("Name").emit(),
-            "{{ .Chart.Name }}"
-        );
+        assert_eq!(HelmExpr::chart("Name").emit(), "{{ .Chart.Name }}");
     }
 
     #[test]

@@ -44,9 +44,10 @@ pub fn render_chart_yaml(meta: &ChartMeta) -> YamlNode {
 /// Render values.yaml from proven `DeploymentConfig` type.
 #[must_use]
 pub fn render_values_yaml(config: &DeploymentConfig) -> YamlNode {
-    let mut entries = vec![
-        YamlEntry::new("replicaCount", YamlNode::Int(config.replicas.into())),
-    ];
+    let mut entries = vec![YamlEntry::new(
+        "replicaCount",
+        YamlNode::Int(config.replicas.into()),
+    )];
 
     // Image
     entries.push(YamlEntry::new(
@@ -111,11 +112,19 @@ pub fn render_values_yaml(config: &DeploymentConfig) -> YamlNode {
             "capabilities",
             YamlNode::map(vec![(
                 "drop",
-                YamlNode::Seq(sec.drop_capabilities.iter().map(|c| YamlNode::str(c)).collect()),
+                YamlNode::Seq(
+                    sec.drop_capabilities
+                        .iter()
+                        .map(|c| YamlNode::str(c))
+                        .collect(),
+                ),
             )]),
         ));
     }
-    entries.push(YamlEntry::new("securityContext", YamlNode::Map(sec_entries)));
+    entries.push(YamlEntry::new(
+        "securityContext",
+        YamlNode::Map(sec_entries),
+    ));
 
     // HPA
     if let Some(ref hpa) = config.hpa {
@@ -156,11 +165,21 @@ pub fn render_values_yaml(config: &DeploymentConfig) -> YamlNode {
                 ("enabled", YamlNode::Bool(true)),
                 (
                     "ingressPorts",
-                    YamlNode::Seq(np.ingress_ports.iter().map(|p| YamlNode::Int((*p).into())).collect()),
+                    YamlNode::Seq(
+                        np.ingress_ports
+                            .iter()
+                            .map(|p| YamlNode::Int((*p).into()))
+                            .collect(),
+                    ),
                 ),
                 (
                     "egressPorts",
-                    YamlNode::Seq(np.egress_ports.iter().map(|p| YamlNode::Int((*p).into())).collect()),
+                    YamlNode::Seq(
+                        np.egress_ports
+                            .iter()
+                            .map(|p| YamlNode::Int((*p).into()))
+                            .collect(),
+                    ),
                 ),
             ]),
         ));
@@ -182,7 +201,10 @@ pub fn render_values_yaml(config: &DeploymentConfig) -> YamlNode {
             .env
             .iter()
             .map(|(k, v)| {
-                YamlNode::map(vec![("name", YamlNode::str(k)), ("value", YamlNode::str(v))])
+                YamlNode::map(vec![
+                    ("name", YamlNode::str(k)),
+                    ("value", YamlNode::str(v)),
+                ])
             })
             .collect();
         entries.push(YamlEntry::new("env", YamlNode::Seq(env_seq)));
@@ -215,7 +237,10 @@ pub fn render_deployment_template() -> YamlNode {
             "metadata",
             YamlNode::map(vec![
                 ("name", HelmExpr::include("chart.fullname").to_yaml()),
-                ("labels", HelmExpr::include_nindent("chart.labels", 4).to_yaml()),
+                (
+                    "labels",
+                    HelmExpr::include_nindent("chart.labels", 4).to_yaml(),
+                ),
             ]),
         ),
         (
@@ -274,7 +299,10 @@ pub fn render_service_template() -> YamlNode {
             "metadata",
             YamlNode::map(vec![
                 ("name", HelmExpr::include("chart.fullname").to_yaml()),
-                ("labels", HelmExpr::include_nindent("chart.labels", 4).to_yaml()),
+                (
+                    "labels",
+                    HelmExpr::include_nindent("chart.labels", 4).to_yaml(),
+                ),
             ]),
         ),
         (
@@ -285,7 +313,10 @@ pub fn render_service_template() -> YamlNode {
                     "ports",
                     YamlNode::Seq(vec![YamlNode::map(vec![
                         ("port", HelmExpr::value(&["service", "port"]).to_yaml()),
-                        ("targetPort", HelmExpr::value(&["service", "targetPort"]).to_yaml()),
+                        (
+                            "targetPort",
+                            HelmExpr::value(&["service", "targetPort"]).to_yaml(),
+                        ),
                     ])]),
                 ),
                 (
@@ -325,23 +356,17 @@ mod tests {
 
     #[test]
     fn values_yaml_has_replica_count() {
-        let config = DeploymentConfig::new(
-            ChartMeta::new("app", "1.0.0"),
-            "ghcr.io/org/app",
-            "latest",
-        )
-        .replicas(3);
+        let config =
+            DeploymentConfig::new(ChartMeta::new("app", "1.0.0"), "ghcr.io/org/app", "latest")
+                .replicas(3);
         let out = emit_file(&render_values_yaml(&config));
         assert!(out.contains("replicaCount: 3"));
     }
 
     #[test]
     fn values_yaml_has_image() {
-        let config = DeploymentConfig::new(
-            ChartMeta::new("app", "1.0.0"),
-            "ghcr.io/org/app",
-            "v1.2.3",
-        );
+        let config =
+            DeploymentConfig::new(ChartMeta::new("app", "1.0.0"), "ghcr.io/org/app", "v1.2.3");
         let out = emit_file(&render_values_yaml(&config));
         assert!(out.contains("ghcr.io/org/app"));
         assert!(out.contains("v1.2.3"));
@@ -349,11 +374,7 @@ mod tests {
 
     #[test]
     fn values_yaml_hardened_security() {
-        let config = DeploymentConfig::new(
-            ChartMeta::new("app", "1.0.0"),
-            "img",
-            "tag",
-        );
+        let config = DeploymentConfig::new(ChartMeta::new("app", "1.0.0"), "img", "tag");
         let out = emit_file(&render_values_yaml(&config));
         assert!(out.contains("runAsNonRoot: true"));
         assert!(out.contains("readOnlyRootFilesystem: true"));

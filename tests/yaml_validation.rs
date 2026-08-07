@@ -17,17 +17,33 @@ fn validate_yaml(source: &str) {
 
 fn test_config() -> DeploymentConfig {
     DeploymentConfig::new(
-        ChartMeta::new("test-app", "0.1.0").app_version("1.0.0").description("Test app"),
+        ChartMeta::new("test-app", "0.1.0")
+            .app_version("1.0.0")
+            .description("Test app"),
         "ghcr.io/pleme-io/test",
         "v0.1.0",
     )
     .replicas(3)
     .port(8080)
-    .resources(Resources::new().cpu("100m", "500m").memory("128Mi", "512Mi"))
+    .resources(
+        Resources::new()
+            .cpu("100m", "500m")
+            .memory("128Mi", "512Mi"),
+    )
     .service(ServiceConfig::cluster_ip(80, 8080))
-    .hpa(HpaConfig { min_replicas: 2, max_replicas: 10, target_cpu_percent: 80 })
-    .pdb(PdbConfig { min_available: Some(1), max_unavailable: None })
-    .network_policy(NetworkPolicyConfig { ingress_ports: vec![8080], egress_ports: vec![443, 53] })
+    .hpa(HpaConfig {
+        min_replicas: 2,
+        max_replicas: 10,
+        target_cpu_percent: 80,
+    })
+    .pdb(PdbConfig {
+        min_available: Some(1),
+        max_unavailable: None,
+    })
+    .network_policy(NetworkPolicyConfig {
+        ingress_ports: vec![8080],
+        egress_ports: vec![443, 53],
+    })
     .label("app.kubernetes.io/component", "api")
     .env("RUST_LOG", "info")
     .with_service_monitor()

@@ -54,8 +54,11 @@ fn chart_yaml_description() {
 
 #[test]
 fn chart_yaml_dependencies() {
-    let meta = ChartMeta::new("app", "1.0.0")
-        .dependency("redis", "17.0.0", "https://charts.bitnami.com/bitnami");
+    let meta = ChartMeta::new("app", "1.0.0").dependency(
+        "redis",
+        "17.0.0",
+        "https://charts.bitnami.com/bitnami",
+    );
     let out = emit_file(&render_chart_yaml(&meta));
     assert!(out.contains("dependencies:"));
     assert!(out.contains("name: redis"));
@@ -198,9 +201,7 @@ fn values_labels() {
 
 #[test]
 fn values_env() {
-    let config = test_config()
-        .env("RUST_LOG", "info")
-        .env("PORT", "8080");
+    let config = test_config().env("RUST_LOG", "info").env("PORT", "8080");
     let out = emit_file(&render_values_yaml(&config));
     assert!(out.contains("RUST_LOG"));
     assert!(out.contains("info"));

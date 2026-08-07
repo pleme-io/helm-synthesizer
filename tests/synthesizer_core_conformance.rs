@@ -126,14 +126,8 @@ fn law_honors_indent_unit_on_include() {
 
 #[test]
 fn law_indent_monotone_len_on_value() {
-    assert!(laws::indent_monotone_len(
-        &HelmExpr::value(&["x"]),
-        0
-    ));
-    assert!(laws::indent_monotone_len(
-        &HelmExpr::value(&["x"]),
-        3
-    ));
+    assert!(laws::indent_monotone_len(&HelmExpr::value(&["x"]), 0));
+    assert!(laws::indent_monotone_len(&HelmExpr::value(&["x"]), 3));
 }
 
 #[test]
