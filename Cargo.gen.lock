@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "cargo_lock_sha256": "7bfe8ebe001b262dbb9d1acbfebcc8c7b55ecbac639e8aa47fea1469fa111704",
+  "cargo_lock_sha256": "496d57a32467ed410dee7700e736911a4aa35e2b7b82177c0f8671d9390d38ba",
   "manifest_sha256": {
-    "Cargo.toml": "bc695ff5582e8f591d93c532e6c56b13317195707e000e074c73ca1170b58229"
+    "Cargo.toml": "8db36d52f481f7388b59ee0ab51eb0e1e674a0645864997dd4a51ad4bdb2bde1"
   },
   "target_resolves": {
     "base": {
@@ -64,11 +64,11 @@
           "std"
         ]
       },
-      "cc-1.4.0": {
+      "cc-1.4.1": {
         "runtime_dependencies": [
           {
             "name": "find_msvc_tools",
-            "package_key": "find-msvc-tools-0.1.9",
+            "package_key": "find-msvc-tools-0.1.10",
             "kind": "normal",
             "features": [],
             "uses_default_features": true,
@@ -142,7 +142,7 @@
           "std"
         ]
       },
-      "find-msvc-tools-0.1.9": {
+      "find-msvc-tools-0.1.10": {
         "runtime_dependencies": [],
         "build_dependencies": [],
         "features": []
@@ -349,7 +349,7 @@
         "build_dependencies": [],
         "features": []
       },
-      "helm-synthesizer-0.1.1": {
+      "helm-synthesizer-0.1.2": {
         "runtime_dependencies": [
           {
             "name": "synthesizer_core",
@@ -967,7 +967,7 @@
         "build_dependencies": [
           {
             "name": "cc",
-            "package_key": "cc-1.4.0",
+            "package_key": "cc-1.4.1",
             "kind": "build",
             "features": [],
             "uses_default_features": true,
@@ -1002,7 +1002,7 @@
         "build_dependencies": [
           {
             "name": "cc",
-            "package_key": "cc-1.4.0",
+            "package_key": "cc-1.4.1",
             "kind": "build",
             "features": [],
             "uses_default_features": true,
@@ -1699,8 +1699,8 @@
     "bitflags-2.13.1": {
       "edition": "2021"
     },
-    "cc-1.4.0": {
-      "edition": "2018"
+    "cc-1.4.1": {
+      "edition": "2021"
     },
     "cfg-if-1.0.4": {
       "edition": "2018"
@@ -1711,8 +1711,8 @@
     "fastrand-2.5.0": {
       "edition": "2018"
     },
-    "find-msvc-tools-0.1.9": {
-      "edition": "2018"
+    "find-msvc-tools-0.1.10": {
+      "edition": "2021"
     },
     "fnv-1.0.7": {
       "edition": "2015",
@@ -1729,7 +1729,7 @@
       "edition": "2024",
       "build_script": "build.rs"
     },
-    "helm-synthesizer-0.1.1": {
+    "helm-synthesizer-0.1.2": {
       "edition": "2024",
       "lib_target": {
         "name": "helm_synthesizer",
