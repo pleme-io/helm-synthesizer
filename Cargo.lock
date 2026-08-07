@@ -110,7 +110,7 @@ name = "helm-synthesizer"
 version = "0.1.1"
 dependencies = [
  "proptest",
- "synthesizer-core 0.1.1 (git+https://github.com/pleme-io/synthesizer-core)",
+ "synthesizer-core",
  "tree-sitter",
  "tree-sitter-yaml",
  "yaml-synthesizer",
@@ -335,11 +335,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d61c6a42add42ba68340770985043123fa594ad86b0a02b613bd9c0de62bf2f"
 
 [[package]]
-name = "synthesizer-core"
-version = "0.1.1"
-source = "git+https://github.com/pleme-io/synthesizer-core#dd7a3b907419241d530ec5f890ab5ead81f82a5d"
-
-[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -434,10 +429,11 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
 name = "yaml-synthesizer"
-version = "0.1.2"
-source = "git+https://github.com/pleme-io/yaml-synthesizer#11fca50d74704b8d9810cce5fad0f7e614652787"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d9bc5513475811c6ff772e5757ff81b8465b4d296868fa2d22acf1a2f7db4bc"
 dependencies = [
- "synthesizer-core 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "synthesizer-core",
 ]
 
 [[package]]
